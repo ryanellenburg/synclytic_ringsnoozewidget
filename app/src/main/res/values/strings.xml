@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Synclytic Ring Snooze Widget</string>
+    <string name="snooze_30m_description">Snooze for 30 minutes</string>
+    <string name="snooze_1h_description">Snooze for 1 hour</string>
+    <string name="snooze_2h_description">Snooze for 2 hours</string>
+    <string name="snooze_3h_description">Snooze for 3 hours</string>
+    <string name="snooze_4h_description">Snooze for 4 hours</string>
+    <string name="snooze_8h_description">Snooze for 8 hours</string>
+    <string name="snooze_12h_description">Snooze for 12 hours</string>
 </resources>
