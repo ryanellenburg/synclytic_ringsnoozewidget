@@ -99,56 +99,71 @@ public class RingSnoozeWidget extends AppWidgetProvider {
         try {
 
             // Step 1: Open the Ring app
-            ComponentName ringApp = new ComponentName("com.ringapp", "com.ringapp.MainActivity"); // Replace with actual component name
+            // Package name is com.ringapp
+            // Class name from ".\adb shell dumpsys activity activities" search is com.ringapp/.maindashboard.MyDevicesDashboardActivity
+            ComponentName ringApp = new ComponentName("com.ringapp", "com.ringapp.maindashboard.MyDevicesDashboardActivity");
             Intent ringIntent = new Intent();
             ringIntent.setComponent(ringApp);
             ringIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(ringIntent);
 
-            // Step 2: Wait for the app to load TODO figure out and adjust the timeout
-            uiDevice.wait(Until.hasObject(By.pkg("com.ringapp").depth(0)), 5000);
+            // Wait for the app to load TODO figure out and adjust the timeout
+            uiDevice.wait(Until.hasObject(By.pkg("com.ringapp").depth(0)), 1000);
 
             // Find and interact with UI elements to snooze.
 
-            // Step 3: Wait for the snooze button to appear TODO adjust timeout as needed
-            UiObject2 snoozeButton = uiDevice.wait(Until.findObject(By.res("com.ringapp", "snooze_button_id")), 1000); // Wait 1 second (adjust to 2000 for 2 seconds if needed)
+            // Step 2: Wait for the snooze button to appear and then click the snooze button TODO adjust timeout as needed
+            // We need to wait for it to appear because sometimes it takes a moment to load
+            // App resource-id = com.ringapp:id/action_snooze
+            UiObject2 snoozeButton = uiDevice.wait(Until.findObject(By.res("com.ringapp", "action_snooze")), 1000);
 
             // Check if the snooze button was found
             if (snoozeButton != null) {
 
-                // Step 4: Click snooze button to open snooze duration menu
+                // Click snooze button to open snooze duration menu
                 snoozeButton.click();
 
-                // Step 5: Upon opening the separate menu for snooze duration, click to open drop down menu
-                UiObject2 snoozeDurationMenu = uiDevice.findObject(By.res("com.ringapp", "snooze_duration_menu_id"));
+                // Step 3: Upon opening the separate menu for snooze duration, click to open drop down menu
+                // App resource-id = com.ringapp:id/snoozeDurationCell
+                UiObject2 snoozeDurationMenu = uiDevice.wait(Until.findObject(By.res("com.ringapp", "snoozeDurationCell")), 1000);
                 snoozeDurationMenu.click();
 
-                // Step 6: Select the appropriate snooze duration from the menu
-                if (snoozeDuration == 30) {
-                    UiObject2 snooze30mOption = uiDevice.findObject(By.text("30 minutes"));
-                    snooze30mOption.click();
-                } else if (snoozeDuration == 1) {
-                    UiObject2 snooze1hOption = uiDevice.findObject(By.text("1 hour"));
-                    snooze1hOption.click();
-                } else if (snoozeDuration == 2) {
-                    UiObject2 snooze2hOption = uiDevice.findObject(By.text("2 hours"));
-                    snooze2hOption.click();
-                } else if (snoozeDuration == 3) {
-                    UiObject2 snooze3hOption = uiDevice.findObject(By.text("3 hours"));
-                    snooze3hOption.click();
-                } else if (snoozeDuration == 4) {
-                    UiObject2 snooze4hOption = uiDevice.findObject(By.text("4 hours"));
-                    snooze4hOption.click();
-                } else if (snoozeDuration == 8) {
-                    UiObject2 snooze8hOption = uiDevice.findObject(By.text("8 hours"));
-                    snooze8hOption.click();
-                } else if (snoozeDuration == 12) {
-                    UiObject2 snooze12hOption = uiDevice.findObject(By.text("12 hours"));
-                    snooze12hOption.click();
+                // Step 4: Select the appropriate snooze duration from the menu
+                UiObject2 snoozeDurationOption = null;
+                switch (snoozeDuration) {
+                    case 30:
+                        snoozeDurationOption = uiDevice.findObject(By.text("30 minutes"));
+                        break;
+                    case 1:
+                        snoozeDurationOption = uiDevice.findObject(By.text("1 hour"));
+                        break;
+                    case 2:
+                        snoozeDurationOption = uiDevice.findObject(By.text("2 hours"));
+                        break;
+                    case 3:
+                        snoozeDurationOption = uiDevice.findObject(By.text("3 hours"));
+                        break;
+                    case 4:
+                        snoozeDurationOption = uiDevice.findObject(By.text("4 hours"));
+                        break;
+                    case 8:
+                        snoozeDurationOption = uiDevice.findObject(By.text("8 hours"));
+                        break;
+                    case 12:
+                        snoozeDurationOption = uiDevice.findObject(By.text("12 hours"));
+                        break;
                 }
 
-                // Step 7: Confirm snooze with clicking "Start Snooze"
-                UiObject2 startSnoozeButton = uiDevice.findObject(By.res("com.ringapp", "start_snooze_button_id")); // Replace with the actual resource ID
+                if (snoozeDurationOption != null) {
+                    snoozeDurationOption.click();
+                } else {
+                    // Handle the case where no matching option is found
+                    Log.e("RingSnooze", "Snooze duration option not found");
+                }
+
+                // Step 5: Confirm snooze with clicking "Start Snooze"
+                // App resource-id = com.ringapp:id/topButton
+                UiObject2 startSnoozeButton = uiDevice.wait(Until.findObject(By.res("com.ringapp", "topButton")), 1000);
                 if (startSnoozeButton != null) {
                     startSnoozeButton.click();
                 } else {
