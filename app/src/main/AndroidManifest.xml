@@ -6,23 +6,99 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/synclytic_app_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/synclytic_app_logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SynclyticRingSnoozeWidget"
+        android:theme="@style/Theme.AppCompat"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.SynclyticRingSnoozeWidget">
+            android:theme="@style/Theme.AppCompat">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <receiver android:name=".app.Widget_30minute"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+            android:resource="@xml/widget_30m" />
+        </receiver>
+
+        <receiver android:name=".app.Widget_1hour"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/widget_1h" />
+        </receiver>
+
+        <receiver android:name=".app.Widget_2hour"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/widget_2h" />
+        </receiver>
+
+        <receiver android:name=".app.Widget_3hour"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/widget_3h" />
+        </receiver>
+
+        <receiver android:name=".app.Widget_4hour"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/widget_4h" />
+        </receiver>
+
+        <receiver android:name=".app.Widget_8hour"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/widget_8h" />
+        </receiver>
+
+        <receiver android:name=".app.Widget_12hour"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+
+                android:resource="@xml/widget_12h" />
+        </receiver>
     </application>
 
 </manifest>

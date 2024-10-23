@@ -1,4 +1,4 @@
-package com.synclytic.ringsnoozewidget.ring;
+package com.synclytic.ringsnoozewidget.app;
 
 import com.synclytic.ringsnoozewidget.R;
 import android.app.PendingIntent;
@@ -17,34 +17,43 @@ import androidx.test.uiautomator.UiObject2;
 import androidx.test.uiautomator.Until;
 
 
-public class RingSnoozeWidget extends AppWidgetProvider {
+public class MainApplication extends AppWidgetProvider {
 
-    private static final String RAGE_SNOOZE = "com.synclytic.ringsnoozewidget.RAGE_SNOOZE";
+    public static final String RAGE_SNOOZE = "com.synclytic.ringsnoozewidget.RAGE_SNOOZE";
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
+
             // Get snooze duration from preferences
             SharedPreferences prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE);
             int snoozeDuration = prefs.getInt("snooze_duration_" + appWidgetId, -1);
+
+            // Get the icon resource ID based on the snooze duration
+            int iconResource = getIconIdForSnoozeDuration(snoozeDuration);
+
+            RemoteViews iconViews = new RemoteViews(context.getPackageName(), R.layout.ring_snooze_widget);
+
+            // Set the icon on the ImageView
+            iconViews.setImageViewResource(R.id.widgetIcon, iconResource);
 
             if (snoozeDuration != -1) {
                 // Select the icon based on snooze duration
                 int iconId = getIconIdForSnoozeDuration(snoozeDuration);
 
-                RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.ring_snooze_widget);
-                views.setImageViewResource(R.id.widgetIcon, iconId);
+                RemoteViews widgetViews = new RemoteViews(context.getPackageName(), R.layout.ring_snooze_widget);
+                widgetViews.setImageViewResource(R.id.widgetIcon, iconId);
 
                 // Intent to trigger the snooze action
-                Intent snoozeIntent = new Intent(context, RingSnoozeWidget.class);
+                Intent snoozeIntent = new Intent(context, MainApplication.class);
                 snoozeIntent.setAction(RAGE_SNOOZE);
                 snoozeIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
                 PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(context, appWidgetId, snoozeIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
                 // Set click listener on the widget's ImageView
-                views.setOnClickPendingIntent(R.id.widgetIcon, snoozePendingIntent);
+                widgetViews.setOnClickPendingIntent(R.id.widgetIcon, snoozePendingIntent);
 
-                appWidgetManager.updateAppWidget(appWidgetId, views);
+                appWidgetManager.updateAppWidget(appWidgetId, widgetViews);
             }
         }
     }
@@ -76,7 +85,6 @@ public class RingSnoozeWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
 
         if (RAGE_SNOOZE.equals(intent.getAction())) {
-
             // Get the appWidgetId from the intent
             int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
 
@@ -107,12 +115,12 @@ public class RingSnoozeWidget extends AppWidgetProvider {
             ringIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(ringIntent);
 
-            // Wait for the app to load TODO figure out and adjust the timeout
+            // Wait for the app to load
             uiDevice.wait(Until.hasObject(By.pkg("com.ringapp").depth(0)), 1000);
 
             // Find and interact with UI elements to snooze.
 
-            // Step 2: Wait for the snooze button to appear and then click the snooze button TODO adjust timeout as needed
+            // Step 2: Wait for the snooze button to appear and then click the snooze button
             // We need to wait for it to appear because sometimes it takes a moment to load
             // App resource-id = com.ringapp:id/action_snooze
             UiObject2 snoozeButton = uiDevice.wait(Until.findObject(By.res("com.ringapp", "action_snooze")), 1000);
