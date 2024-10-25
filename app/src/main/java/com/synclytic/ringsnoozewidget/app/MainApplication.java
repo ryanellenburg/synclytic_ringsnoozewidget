@@ -15,6 +15,7 @@ import androidx.test.uiautomator.By;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject2;
 import androidx.test.uiautomator.Until;
+import java.util.Arrays;
 
 
 public class MainApplication extends AppWidgetProvider {
@@ -23,19 +24,25 @@ public class MainApplication extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+
+        Log.d("MainApplication", "(onUpdate) onUpdate called with appWidgetIds: " + Arrays.toString(appWidgetIds));
+
         for (int appWidgetId : appWidgetIds) {
 
             // Get snooze duration from preferences
             SharedPreferences prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE);
             int snoozeDuration = prefs.getInt("snooze_duration_" + appWidgetId, -1);
+            Log.d("MainApplication", "(onUpdate) Snooze Duration for widget " + appWidgetId + ": " + snoozeDuration);
 
             // Get the icon resource ID based on the snooze duration
             int iconId = getIconIdForSnoozeDuration(snoozeDuration);
 
             // Create RemoteViews for the widget
+            Log.d("MainApplication", "(onUpdate) Creating RemoteViews for widgetId: " + appWidgetId);
             RemoteViews widgetViews = new RemoteViews(context.getPackageName(), R.layout.ring_snooze_widget);
 
             // Set the icon on the ImageView
+            Log.d("MainApplication", "(onUpdate) Setting icon with ID: " + iconId);
             widgetViews.setImageViewResource(R.id.widgetIcon, iconId);
 
             // Intent to trigger the snooze action
@@ -43,11 +50,12 @@ public class MainApplication extends AppWidgetProvider {
             snoozeIntent.setAction(RAGE_SNOOZE);
             snoozeIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
             snoozeIntent.putExtra("snooze_duration", snoozeDuration);
+            Log.d("MainApplication", "(onUpdate) Creating PendingIntent for widgetId: " + appWidgetId);
             PendingIntent snoozePendingIntent = PendingIntent.getBroadcast(context, appWidgetId, snoozeIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
             if (snoozeDuration != -1) {
 
-                                // Set click listener on the widget's ImageView
+                // Set click listener on the widget's ImageView
                 widgetViews.setOnClickPendingIntent(R.id.widgetIcon, snoozePendingIntent);
 
                 appWidgetManager.updateAppWidget(appWidgetId, widgetViews);
@@ -72,11 +80,15 @@ public class MainApplication extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
+        Log.d("MainApplication", "(onReceive) onReceive called with action: " + intent.getAction());
 
         if (RAGE_SNOOZE.equals(intent.getAction())) {
 
+            Log.d("MainApplication", "(onReceive) RAGE_SNOOZE action received");
+
             // Get snooze duration from the intent
             int snoozeDuration = intent.getIntExtra("snooze_duration", -1);
+            Log.d("MainApplication", "(onReceive) Snooze Duration from intent: " + snoozeDuration);
 
             if (snoozeDuration != -1) {
                 // Trigger UI automation with the snooze duration
@@ -91,6 +103,8 @@ public class MainApplication extends AppWidgetProvider {
         // Using UI Automator
         UiDevice uiDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         try {
+
+            Log.d("MainApplication", "(triggerRingSnoozeAutomation) Starting Ring app for snooze");
 
             // Step 1: Open the Ring app
             // Package name is com.ringapp
@@ -114,6 +128,7 @@ public class MainApplication extends AppWidgetProvider {
             // Check if the snooze button was found
             if (snoozeButton != null) {
 
+                Log.d("MainApplication", "(triggerRingSnoozeAutomation) Snooze button found, clicking it");
                 // Click snooze button to open snooze duration menu
                 snoozeButton.click();
 
@@ -138,7 +153,7 @@ public class MainApplication extends AppWidgetProvider {
                     snoozeDurationOption.click();
                 } else {
                     // Handle the case where no matching option is found
-                    Log.e("RingSnooze", "Snooze duration option not found");
+                    Log.e("RingSnooze", "(triggerRingSnoozeAutomation) Snooze duration option not found");
                 }
 
                 // Step 5: Confirm snooze with clicking "Start Snooze"
@@ -148,17 +163,17 @@ public class MainApplication extends AppWidgetProvider {
                     startSnoozeButton.click();
                 } else {
                     // Handle the case where the button is not found
-                    Log.e("RingSnooze", "Start Snooze button not found");
+                    Log.e("RingSnooze", "(triggerRingSnoozeAutomation) Start Snooze button not found");
                 }
 
             } else {
                 // Handle the case where the snooze button is not found
-                Log.e("RingSnooze", "Snooze button not found");
+                Log.e("RingSnooze", "(triggerRingSnoozeAutomation) Snooze button not found");
             }
 
         // Catch-all for any other error
         } catch (Exception e) {
-            Log.e("RingSnooze", "Error triggering snooze automation", e);
+            Log.e("RingSnooze", "(triggerRingSnoozeAutomation) Error triggering snooze automation", e);
         }
     }
 }

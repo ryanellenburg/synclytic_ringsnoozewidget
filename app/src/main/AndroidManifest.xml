@@ -30,8 +30,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
-            android:resource="@xml/widget_30m" />
+                android:resource="@xml/widget_30m" />
         </receiver>
 
         <receiver android:name=".app.Widget_1hour"
@@ -41,7 +40,6 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
                 android:resource="@xml/widget_1h" />
         </receiver>
 
@@ -52,7 +50,6 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
                 android:resource="@xml/widget_2h" />
         </receiver>
 
@@ -63,7 +60,6 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
                 android:resource="@xml/widget_3h" />
         </receiver>
 
@@ -74,7 +70,6 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
                 android:resource="@xml/widget_4h" />
         </receiver>
 
@@ -85,7 +80,6 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
                 android:resource="@xml/widget_8h" />
         </receiver>
 
@@ -96,7 +90,6 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-
                 android:resource="@xml/widget_12h" />
         </receiver>
     </application>
