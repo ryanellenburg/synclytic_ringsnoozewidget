@@ -58,15 +58,9 @@ public class Accessibility extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
-        // Check if snooze is already active
-        if (isSnoozeActive) {
-            handler.postDelayed(this::stopSelf, 1000); // Delay for 1 second
-            Log.d("Accessibility", "(onAccessibilityEvent) Snooze already active, skipping further actions.");
-            return;
-        }
-
         if (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                && "com.ringapp".contentEquals(event.getPackageName())) {
+                && "com.ringapp".contentEquals(event.getPackageName())
+                && !isSnoozeActive) {
 
             Log.d("Accessibility", "(onAccessibilityEvent) Accessibility event received: " + event);
             Log.d("Accessibility", "(onAccessibilityEvent) Event class name: " + event.getClassName());
