@@ -1,13 +1,21 @@
 package com.synclytic.ringsnoozewidget.app;
 
+import com.synclytic.ringsnoozewidget.R;
 import android.accessibilityservice.AccessibilityService;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import androidx.core.app.NotificationCompat;
 import java.util.List;
 
 public class Accessibility extends AccessibilityService {
@@ -27,33 +35,53 @@ public class Accessibility extends AccessibilityService {
         int snoozeDuration = intent.getIntExtra("snooze_duration", 720); // 12 hours in minutes
         Log.d("Accessibility", "(onStartCommand) Received command to snooze for: " + snoozeDuration + " minutes");
 
-        // Step 1: Open the Ring app
+        // Try opening the Ring app
         PackageManager packageManager = getPackageManager();
         Intent ringIntent = packageManager.getLaunchIntentForPackage("com.ringapp");
 
         if (ringIntent != null) {
             ringIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(ringIntent);
-            Log.d("Accessibility", "(onStartCommand) Successfully launching Ring app with getLaunchIntentForPackage");
+            Log.d("Accessibility", "(onStartCommand) Successfully launching Ring app.");
         } else {
-            // Alternative approach: try to launch a known activity directly
-            Log.e("Accessibility", "(onStartCommand) Failed with getLaunchIntentForPackage, trying alternative method");
-
-            ringIntent = new Intent();
-            ringIntent.setClassName("com.ringapp", "com.ringapp.maindashboard.MyDevicesDashboardActivity");
-            ringIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            try {
-                startActivity(ringIntent);
-                Log.d("Accessibility", "(onStartCommand) Successfully launched Ring app using direct activity Intent");
-            } catch (Exception e) {
-                Log.e("Accessibility", "(onStartCommand) Failed to launch Ring app with alternative method", e);
+            Log.d("Accessibility", "(onStartCommand) No direct access to Ring UI. Attempting through notifications.");
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            String channelId = "ring_snooze_widget_channel";
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel(
+                        channelId,
+                        "Ring Snooze Widget",
+                        NotificationManager.IMPORTANCE_HIGH
+                );
+                notificationManager.createNotificationChannel(channel);
             }
+
+            Intent openIntent = new Intent(Intent.ACTION_MAIN);
+            openIntent.setPackage("com.ringapp");
+            PendingIntent pendingIntent = PendingIntent.getActivity(
+                    this,
+                    0,
+                    openIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            Notification notification = new NotificationCompat.Builder(this, channelId)
+                    .setContentTitle("Open Ring App")
+                    .setContentText("Tap to open the Ring app and activate snooze.")
+                    .setSmallIcon(R.drawable.widget_logo_12)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setContentIntent(pendingIntent)
+                    .setAutoCancel(true)
+                    .setFullScreenIntent(pendingIntent, true)
+                    .build();
+
+            notificationManager.notify(1, notification);
+
         }
 
-        return START_NOT_STICKY; // Prevent automatic restarting of the service
+        // Return START_NOT_STICKY as no further handling required after app launch
+        return START_NOT_STICKY;
     }
-
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -70,7 +98,10 @@ public class Accessibility extends AccessibilityService {
                 isRingAppInitialized = true;
                 Log.d("Accessibility", "(onAccessibilityEvent) Initializing Ring app snooze automation...");
 
-                handler.postDelayed(this::checkForSnoozeButton, 250); // Delay to let Ring UI fully load
+                handler.postDelayed(this::checkForSnoozeButton, 1000); // Delay to let Ring UI fully load
+                // 500 millis worked when app was already open, but fails when app is closed
+                // This is usually due to the latent load of the snooze button, in place of the invite friends button
+                // 1000 millis works fine for now on a cold start
             }
         }
     }
@@ -136,7 +167,7 @@ public class Accessibility extends AccessibilityService {
             // Log the entire hierarchy starting from the root node
             logNodeHierarchy(rootNode, "");
 
-            // Attempt to find the 12-hour option directly from the root
+            // Find the 12-hour option directly from the root
             List<AccessibilityNodeInfo> allNodes = rootNode.findAccessibilityNodeInfosByText("12 hours");
             for (AccessibilityNodeInfo node : allNodes) {
                 if (node.getClassName().equals("com.ring.android.safe.cell.IconValueCell")) {
@@ -144,7 +175,7 @@ public class Accessibility extends AccessibilityService {
                     node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                     Log.d("Accessibility", "(selectTwelveHourOption) 12-hour snooze selected");
 
-                    handler.postDelayed(this::confirmSnooze, 250);
+                    handler.postDelayed(this::confirmSnooze, 250); // Delay for Ring UI to develop
                     return;
                 }
             }
@@ -192,7 +223,6 @@ public class Accessibility extends AccessibilityService {
         }
     }
 
-
     // Helper method to find UI element by ID
     private AccessibilityNodeInfo findNodeById(AccessibilityNodeInfo rootNode, String id) {
         List<AccessibilityNodeInfo> nodes = rootNode.findAccessibilityNodeInfosByViewId(id);
@@ -200,6 +230,7 @@ public class Accessibility extends AccessibilityService {
     }
 
     // Method to log the hierarchy of nodes
+    // We are the devs who say ni!
     private void logNodeHierarchy(AccessibilityNodeInfo node, String indent) {
         Log.d("Accessibility", indent + "Node: " + node.getClassName() + ", Text: " + node.getText());
         for (int ni = 0; ni < node.getChildCount(); ni++) {
